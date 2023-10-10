@@ -5,6 +5,8 @@ import {BaseTokenizedStrategy} from "@tokenized-strategy/BaseTokenizedStrategy.s
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {DullahanPodManager} from "./interfaces/IPodManager.sol";
+
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
@@ -24,11 +26,19 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 contract Strategy is BaseTokenizedStrategy {
     using SafeERC20 for ERC20;
+    address public sDAI;
+    address public podManager;
+    address public pod;
 
     constructor(
         address _asset,
-        string memory _name
-    ) BaseTokenizedStrategy(_asset, _name) {}
+        string memory _name,
+        address _sDAI,
+        address _podManager
+    ) BaseTokenizedStrategy(_asset, _name) {
+        sDAI = _sDAI;
+        podManager = _podManager;
+    }
 
     /*//////////////////////////////////////////////////////////////
                 NEEDED TO BE OVERRIDEN BY STRATEGIST
@@ -49,6 +59,10 @@ contract Strategy is BaseTokenizedStrategy {
         // TODO: implement deposit logice EX:
         //
         //      lendingpool.deposit(asset, _amount ,0);
+    }
+
+    function init() external{
+        pod = DullahanPodManager(podManager).createPod(asset);
     }
 
     /**

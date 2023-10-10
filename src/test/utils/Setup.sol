@@ -73,7 +73,7 @@ contract Setup is ExtendedTest, IEvents {
     function setUpStrategy() public returns (address) {
         // we save the strategy as a IStrategyInterface to give it the needed interface
         IStrategyInterface _strategy = IStrategyInterface(
-            address(new Strategy(address(asset), "Tokenized Strategy"))
+            address(new Strategy(address(asset), "Tokenized Strategy", 0x83F20F44975D03b1b09e64809B757c47f942BEeA, 0xf3dEcC68c4FF828456696287B12e5AC0fa62fE56))
         );
 
         // set keeper
