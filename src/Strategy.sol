@@ -5,6 +5,7 @@ import {BaseTokenizedStrategy} from "@tokenized-strategy/BaseTokenizedStrategy.s
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {DullahanPodManager} from "./interfaces/IPodManager.sol";
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
@@ -25,10 +26,16 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 contract Strategy is BaseTokenizedStrategy {
     using SafeERC20 for ERC20;
 
-    constructor(
-        address _asset,
-        string memory _name
-    ) BaseTokenizedStrategy(_asset, _name) {}
+    address public sDAI;
+    address public podManager;
+    address public pod;
+
+    constructor(address _asset, string memory _name, address _sDAI, address _podManager)
+        BaseTokenizedStrategy(_asset, _name)
+    {
+        sDAI = _sDAI;
+        podManager = _podManager;
+    }
 
     /*//////////////////////////////////////////////////////////////
                 NEEDED TO BE OVERRIDEN BY STRATEGIST
@@ -49,6 +56,10 @@ contract Strategy is BaseTokenizedStrategy {
         // TODO: implement deposit logice EX:
         //
         //      lendingpool.deposit(asset, _amount ,0);
+    }
+
+    function init() external {
+        pod = DullahanPodManager(podManager).createPod(asset);
     }
 
     /**
@@ -100,11 +111,7 @@ contract Strategy is BaseTokenizedStrategy {
      * @return _totalAssets A trusted and accurate account for the total
      * amount of 'asset' the strategy currently holds including idle funds.
      */
-    function _harvestAndReport()
-        internal
-        override
-        returns (uint256 _totalAssets)
-    {
+    function _harvestAndReport() internal override returns (uint256 _totalAssets) {
         // TODO: Implement harvesting logic and accurate accounting EX:
         //
         //      _claminAndSellRewards();
@@ -139,8 +146,8 @@ contract Strategy is BaseTokenizedStrategy {
      *
      * @param _totalIdle The current amount of idle funds that are available to deploy.
      *
-    function _tend(uint256 _totalIdle) internal override {}
-    */
+     * function _tend(uint256 _totalIdle) internal override {}
+     */
 
     /**
      * @notice Returns wether or not tend() should be called by a keeper.
@@ -149,8 +156,8 @@ contract Strategy is BaseTokenizedStrategy {
      *
      * @return . Should return true if tend() should be called by keeper or false if not.
      *
-    function tendTrigger() public view override returns (bool) {}
-    */
+     * function tendTrigger() public view override returns (bool) {}
+     */
 
     /**
      * @notice Gets the max amount of `asset` that an adress can deposit.
@@ -173,16 +180,16 @@ contract Strategy is BaseTokenizedStrategy {
      * @param . The address that is depositing into the strategy.
      * @return . The avialable amount the `_owner` can deposit in terms of `asset`
      *
-    function availableDepositLimit(
-        address _owner
-    ) public view override returns (uint256) {
-        TODO: If desired Implement deposit limit logic and any needed state variables .
-        
-        EX:    
-            uint256 totalAssets = TokenizedStrategy.totalAssets();
-            return totalAssets >= depositLimit ? 0 : depositLimit - totalAssets;
-    }
-    */
+     * function availableDepositLimit(
+     *     address _owner
+     * ) public view override returns (uint256) {
+     *     TODO: If desired Implement deposit limit logic and any needed state variables .
+     *     
+     *     EX:    
+     *         uint256 totalAssets = TokenizedStrategy.totalAssets();
+     *         return totalAssets >= depositLimit ? 0 : depositLimit - totalAssets;
+     * }
+     */
 
     /**
      * @notice Gets the max amount of `asset` that can be withdrawn.
@@ -202,15 +209,15 @@ contract Strategy is BaseTokenizedStrategy {
      * @param . The address that is withdrawing from the strategy.
      * @return . The avialable amount that can be withdrawn in terms of `asset`
      *
-    function availableWithdrawLimit(
-        address _owner
-    ) public view override returns (uint256) {
-        TODO: If desired Implement withdraw limit logic and any needed state variables.
-        
-        EX:    
-            return TokenizedStrategy.totalIdle();
-    }
-    */
+     * function availableWithdrawLimit(
+     *     address _owner
+     * ) public view override returns (uint256) {
+     *     TODO: If desired Implement withdraw limit logic and any needed state variables.
+     *     
+     *     EX:    
+     *         return TokenizedStrategy.totalIdle();
+     * }
+     */
 
     /**
      * @dev Optional function for a strategist to override that will
@@ -233,13 +240,12 @@ contract Strategy is BaseTokenizedStrategy {
      *
      * @param _amount The amount of asset to attempt to free.
      *
-    function _emergencyWithdraw(uint256 _amount) internal override {
-        TODO: If desired implement simple logic to free deployed funds.
-
-        EX:
-            _amount = min(_amount, atoken.balanceOf(address(this)));
-            lendingPool.withdraw(asset, _amount);
-    }
-
-    */
+     * function _emergencyWithdraw(uint256 _amount) internal override {
+     *     TODO: If desired implement simple logic to free deployed funds.
+     * 
+     *     EX:
+     *         _amount = min(_amount, atoken.balanceOf(address(this)));
+     *         lendingPool.withdraw(asset, _amount);
+     * }
+     */
 }
