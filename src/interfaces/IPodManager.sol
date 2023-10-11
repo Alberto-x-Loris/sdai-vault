@@ -104,4 +104,3 @@ interface DullahanPodManager {
     function updateRegistry(address newRegistry) external;
     function vault() external view returns (address);
 }
-

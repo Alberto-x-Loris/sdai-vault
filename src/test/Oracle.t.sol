@@ -25,25 +25,25 @@ contract OracleTest is Setup {
 
         // TODO: Uncomment to test the apr goes up and down based on debt changes
         /**
-        uint256 negativeDebtChangeApr = oracle.aprAfterDebtChange(_strategy, -int256(_delta));
-
-        // The apr should go up if deposits go down
-        assertLt(currentApr, negativeDebtChangeApr, "negative change");
-
-        uint256 positiveDebtChangeApr = oracle.aprAfterDebtChange(_strategy, _delta);
-
-        assertGt(currentApr, positiveDebtChangeApr, "positive change");
-        */
+         * uint256 negativeDebtChangeApr = oracle.aprAfterDebtChange(_strategy, -int256(_delta));
+         * 
+         *     // The apr should go up if deposits go down
+         *     assertLt(currentApr, negativeDebtChangeApr, "negative change");
+         * 
+         *     uint256 positiveDebtChangeApr = oracle.aprAfterDebtChange(_strategy, _delta);
+         * 
+         *     assertGt(currentApr, positiveDebtChangeApr, "positive change");
+         */
 
         // TODO: Uncomment if there are setter functions to test.
         /**
-        vm.expectRevert("Ownable: caller is not the owner");
-        oracle.setterFunction(setterVariable, sender=user);
-    
-        oracle.setterFunction(setterVariable, sender=management);
-
-        assertEq(oracle.setterVariable(), setterVariable);
-        */
+         * vm.expectRevert("Ownable: caller is not the owner");
+         *     oracle.setterFunction(setterVariable, sender=user);
+         * 
+         *     oracle.setterFunction(setterVariable, sender=management);
+         * 
+         *     assertEq(oracle.setterVariable(), setterVariable);
+         */
     }
 
     function test_oracle(uint256 _amount, uint16 _percentChange) public {
