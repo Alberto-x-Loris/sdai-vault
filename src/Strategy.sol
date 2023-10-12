@@ -2,10 +2,15 @@
 pragma solidity 0.8.18;
 
 import {BaseTokenizedStrategy} from "@tokenized-strategy/BaseTokenizedStrategy.sol";
-
+import {IVault} from "src/interfaces/IVault.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {DullahanPodManager} from "./interfaces/IPodManager.sol";
+import {DullahanPodManager} from "src/interfaces/IPodManager.sol";
+import {IFlashLoanRecipient} from "src/interfaces/IFlashLoanRecipient.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IPod} from "src/interfaces/IPod.sol";
+import {SavingsDai} from "src/interfaces/IsDAI.sol";
+import {console2} from "forge-std/console2.sol";
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
@@ -23,12 +28,17 @@ import {DullahanPodManager} from "./interfaces/IPodManager.sol";
 
 // NOTE: To implement permissioned functions you can use the onlyManagement and onlyKeepers modifiers
 
-contract Strategy is BaseTokenizedStrategy {
+contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient {
     using SafeERC20 for ERC20;
 
     address public sDAI;
+    address public DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public podManager;
     address public pod;
+    address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    
+
+    enum FlashLoanOperation {LEVERAGE, DELEVERAGE}
 
     constructor(address _asset, string memory _name, address _sDAI, address _podManager)
         BaseTokenizedStrategy(_asset, _name)
@@ -40,7 +50,65 @@ contract Strategy is BaseTokenizedStrategy {
     /*//////////////////////////////////////////////////////////////
                 NEEDED TO BE OVERRIDEN BY STRATEGIST
     //////////////////////////////////////////////////////////////*/
+    function receiveFlashLoan(
+        IERC20[] memory tokens,
+        uint256[] memory amounts,
+        uint256[] memory feeAmounts,
+        bytes memory userData
+    ) external{
+        (FlashLoanOperation operation) = abi.decode(userData, (FlashLoanOperation));
+        if(operation == FlashLoanOperation.LEVERAGE){
+            _leverageAfterFlashLoan(amounts[0]);
+        }
+    }
 
+    function  _leverage(uint256 _amount, uint8 leverageFactor, uint8 maxLTV) internal {
+        if(leverageFactor >= 10) revert("Leverage factor must be less than 10");
+        //Will deposit leveragedsDaiAmount of DAI in pod as collateral
+        console2.log("DAI Balance: ", _amount);
+
+        
+        uint256 leveragedDaiAmount = _amount * (100**(leverageFactor+1)- uint256(maxLTV)**(leverageFactor+1))/((100**leverageFactor) * (100-maxLTV));
+        console2.log("leveraged DAI Balance: ", leveragedDaiAmount);
+
+
+        //Will need to borrow leveragedGHOAmount from POD to reimburse flashloan
+        uint256 leveragedGHOAmount = _amount * (100**(leverageFactor+1)- uint256(maxLTV)**(leverageFactor+1))/((100**leverageFactor) * (100-maxLTV));
+
+        
+        address[] memory daiSingleton = new address[](1);
+        daiSingleton[0] = DAI;
+        uint256[] memory DAIamountSingleton = new uint256[](1);
+        DAIamountSingleton[0] = leveragedDaiAmount;
+
+        bytes memory leverageData = abi.encode(FlashLoanOperation.LEVERAGE);
+
+        IVault(balancerVault).flashLoan(address(this), daiSingleton, DAIamountSingleton, leverageData);
+    }
+
+    function _leverageAfterFlashLoan(uint256 amount) internal {
+        // gho depeg factor to multiply by amount to reimburse flashloan (= 1 / ghoPrice)
+        uint256 ghoDepegFactor = 103;
+        //get DAI balance from flashloan
+        uint256 DAIBalance = ERC20(DAI).balanceOf(address(this));
+        console2.log("DAI Balance: ", DAIBalance);
+
+        ERC20(DAI).approve(sDAI, DAIBalance);
+        uint256 sDAIBalance = SavingsDai(sDAI).deposit(DAIBalance, address(this));
+
+        ERC20(sDAI).approve(pod, sDAIBalance);
+
+        //deposit sDAI in pod as collateral
+        IPod(pod).depositCollateral(sDAIBalance);
+
+        //Borrow GHO from pod
+        IPod(pod).mintGho((amount * ghoDepegFactor)/100 , address(this));
+
+        //swap GHO for DAI
+        
+    }
+
+    
     /**
      * @dev Should deploy up to '_amount' of 'asset' in the yield source.
      *
@@ -53,13 +121,13 @@ contract Strategy is BaseTokenizedStrategy {
      * to deposit in the yield source.
      */
     function _deployFunds(uint256 _amount) internal override {
-        // TODO: implement deposit logice EX:
-        //
-        //      lendingpool.deposit(asset, _amount ,0);
+        _leverage(_amount, 9, 77);
+        
+
     }
 
     function init() external {
-        pod = DullahanPodManager(podManager).createPod(asset);
+        pod = DullahanPodManager(podManager).createPod(sDAI);
     }
 
     /**
