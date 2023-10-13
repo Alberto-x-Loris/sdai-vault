@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Errors} from "src/Errors.sol";
+import {Errors} from "./Errors.sol";
 import {ISwapRouter} from "./uniswap/ISwapRouter.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
@@ -61,12 +61,13 @@ abstract contract AUniswap is EtherUtils {
     /// @dev Converts a given amount of a token into WETH using Uniswap.
     /// @param token The token to be converted.
     /// @param amountIn The amount of token to be swapped.
-    /// @param ethOutMin The minimum amount of WETH expected in return.
-    /// @return amountOut The amount of WETH received from the swap.
-    function _etherize(address token, uint256 amountIn, uint256 ethOutMin) internal returns (uint256 amountOut) {
+    /// @param ethOutMin The minimum amount of DAI expected in return.
+    /// @return amountOut The amount of DAI received from the swap.
+    function _swapToGho(address token, uint256 amountIn, uint256 ethOutMin) internal returns (uint256 amountOut) {
+        address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: token, // The input token address
-            tokenOut: WETH, // The token received should be Wrapped Ether
+            tokenOut: DAI, // The token received should be Wrapped Ether
             fee: uniswapFees[token], // The fee tier of the pool
             recipient: address(this), // Receiver of the swapped tokens
             deadline: block.timestamp, // Swap has to be terminated at block time

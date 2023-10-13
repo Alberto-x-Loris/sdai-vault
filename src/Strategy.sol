@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.18;
 
 import {BaseTokenizedStrategy} from "@tokenized-strategy/BaseTokenizedStrategy.sol";
 import {IVault} from "src/interfaces/IVault.sol";
@@ -11,6 +11,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPod} from "src/interfaces/IPod.sol";
 import {SavingsDai} from "src/interfaces/IsDAI.sol";
 import {console2} from "forge-std/console2.sol";
+import {AUniswap} from "src/periphery/AUniswap.sol";
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
@@ -28,11 +29,12 @@ import {console2} from "forge-std/console2.sol";
 
 // NOTE: To implement permissioned functions you can use the onlyManagement and onlyKeepers modifiers
 
-contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient {
+contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     using SafeERC20 for ERC20;
 
     address public sDAI;
     address public DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address public GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
     address public podManager;
     address public pod;
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
@@ -102,9 +104,15 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient {
         IPod(pod).depositCollateral(sDAIBalance);
 
         //Borrow GHO from pod
-        IPod(pod).mintGho((amount * ghoDepegFactor)/100 , address(this));
+        uint256 mintedGho = IPod(pod).mintGho((amount * ghoDepegFactor)/100 , address(this));
 
         //swap GHO for DAI
+        uint256 daiReceived = _swapToGho(GHO, mintedGho, amount);
+
+        //return flashloan
+        ERC20(DAI).approve(balancerVault, daiReceived);
+        ERC20(DAI).transfer(balancerVault, daiReceived);
+
         
     }
 
