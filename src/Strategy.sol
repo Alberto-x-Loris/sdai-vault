@@ -60,6 +60,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     ) external{
         (FlashLoanOperation operation) = abi.decode(userData, (FlashLoanOperation));
         if(operation == FlashLoanOperation.LEVERAGE){
+            console2.log("LEVERAGE");
             _leverageAfterFlashLoan(amounts[0]);
         }
     }
@@ -89,6 +90,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     }
 
     function _leverageAfterFlashLoan(uint256 amount) internal {
+        console2.log("starting leverage with amount: ", amount);
         // gho depeg factor to multiply by amount to reimburse flashloan (= 1 / ghoPrice)
         uint256 ghoDepegFactor = 103;
         //get DAI balance from flashloan
@@ -96,18 +98,28 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         console2.log("DAI Balance: ", DAIBalance);
 
         ERC20(DAI).approve(sDAI, DAIBalance);
+
         uint256 sDAIBalance = SavingsDai(sDAI).deposit(DAIBalance, address(this));
+        console2.log("sDAI Balance: ", sDAIBalance);
 
         ERC20(sDAI).approve(pod, sDAIBalance);
+        console2.log("sDAI approved for pod");
 
         //deposit sDAI in pod as collateral
         IPod(pod).depositCollateral(sDAIBalance);
+        console2.log("sDAI deposited in pod");
 
         //Borrow GHO from pod
+        //uint256 mintedGho = IPod(pod).mintGho(1000e6 , address(this));
+
         uint256 mintedGho = IPod(pod).mintGho((amount * ghoDepegFactor)/100 , address(this));
 
+        console2.log("minted GHO: ", mintedGho);
+
         //swap GHO for DAI
-        uint256 daiReceived = _swapToGho(GHO, mintedGho, amount);
+        uint256 daiReceived = _swapToDAI(GHO, mintedGho, amount*100/ghoDepegFactor);
+
+        console2.log("DAI received: ", daiReceived);
 
         //return flashloan
         ERC20(DAI).approve(balancerVault, daiReceived);
@@ -136,6 +148,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
     function init() external {
         pod = DullahanPodManager(podManager).createPod(sDAI);
+        console2.log("Pod created: ", pod);
     }
 
     /**

@@ -13,12 +13,14 @@ abstract contract VaultSetup is Setup {
 
     function setUp() public override {
         super.setUp();
+        
         vm.startPrank(DullahanPodManager(podManager).owner());
 
-        DullahanPodManager(address(podManager)).addCollateral(sDAI, asDAI);
+        DullahanPodManager(address(podManager)).addCollateral(Strategy(address(strategy)).sDAI(), asDAI);
 
         vm.stopPrank();
-        pod = DullahanPodManager(podManager).createPod(sDAI);
+        Strategy(address(strategy)).init();
+
 
     }
 }

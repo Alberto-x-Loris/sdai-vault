@@ -61,9 +61,9 @@ abstract contract AUniswap is EtherUtils {
     /// @dev Converts a given amount of a token into WETH using Uniswap.
     /// @param token The token to be converted.
     /// @param amountIn The amount of token to be swapped.
-    /// @param ethOutMin The minimum amount of DAI expected in return.
+    /// @param minAmountOut The minimum amount of DAI expected in return.
     /// @return amountOut The amount of DAI received from the swap.
-    function _swapToGho(address token, uint256 amountIn, uint256 ethOutMin) internal returns (uint256 amountOut) {
+    function _swapToDAI(address token, uint256 amountIn, uint256 minAmountOut) internal returns (uint256 amountOut) {
         address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: token, // The input token address
@@ -72,7 +72,7 @@ abstract contract AUniswap is EtherUtils {
             recipient: address(this), // Receiver of the swapped tokens
             deadline: block.timestamp, // Swap has to be terminated at block time
             amountIn: amountIn, // The exact amount to swap
-            amountOutMinimum: ethOutMin, // Quote is given by frontend to ensure slippage is minimised
+            amountOutMinimum: minAmountOut, // Quote is given by frontend to ensure slippage is minimised
             sqrtPriceLimitX96: 0 // Ensure we swap our exact input amount.
         });
 
