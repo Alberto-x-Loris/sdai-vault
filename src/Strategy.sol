@@ -11,7 +11,9 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPod} from "src/interfaces/IPod.sol";
 import {SavingsDai} from "src/interfaces/IsDAI.sol";
 import {console2} from "forge-std/console2.sol";
-import {AUniswap} from "src/periphery/AUniswap.sol";
+import  {AUniswap} from "src/periphery/AUniswap.sol";
+import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+
 
 // Import interfaces for many popular DeFi projects, or add your own!
 //import "../interfaces/<protocol>/<Interface>.sol";
@@ -92,7 +94,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     function _leverageAfterFlashLoan(uint256 amount) internal {
         console2.log("starting leverage with amount: ", amount);
         // gho depeg factor to multiply by amount to reimburse flashloan (= 1 / ghoPrice)
-        uint256 ghoDepegFactor = 103;
+        uint256 ghoDepegFactor = 104;
         //get DAI balance from flashloan
         uint256 DAIBalance = ERC20(DAI).balanceOf(address(this));
         console2.log("DAI Balance: ", DAIBalance);
@@ -116,8 +118,14 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
         console2.log("minted GHO: ", mintedGho);
 
+        //SafeTransferLib.safeTransferFrom(ERC20(address(GHO)), address(this), address(AUniswap.swapRouter), mintedGho);
+        //ERC20(GHO).safeIncreaseAllowance(address(swapRouter), mintedGho);
+        ERC20(GHO).approve(address(swapRouter), mintedGho);
+
+        console2.log("GHO approved for swap for ", address(AUniswap.swapRouter));
+
         //swap GHO for DAI
-        uint256 daiReceived = _swapToDAI(GHO, mintedGho, amount*100/ghoDepegFactor);
+        uint256 daiReceived = _swapToDAI(GHO, mintedGho, amount);
 
         console2.log("DAI received: ", daiReceived);
 
