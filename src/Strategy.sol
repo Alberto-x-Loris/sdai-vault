@@ -115,30 +115,21 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         //Borrow GHO from pod
         //uint256 mintedGho = IPod(pod).mintGho(1000e6 , address(this));
 
-        uint256 mintedGho = IPod(pod).mintGho((amount * ghoDepegFactor)/100 , address(this));
+        uint256 mintedGho = IPod(pod).mintGho(5000e18 , address(this));
 
         console2.log("minted GHO: ", mintedGho);
 
-        //SafeTransferLib.safeTransferFrom(ERC20(address(GHO)), address(this), address(AUniswap.swapRouter), mintedGho);
-        //ERC20(GHO).safeIncreaseAllowance(address(swapRouter), mintedGho);
-        //ERC20(GHO).approve(address(swapRouter), mintedGho);
         _resetUniswapAllowance(GHO);
-        _resetUniswapAllowance(DAI);
-        _resetUniswapAllowance(USDC);
-        
-
-        console2.log("GHO approved for swap for ", address(AUniswap.swapRouter));
+        console2.log("GHO approved for swap for ", address(swapRouter));
 
         //swap GHO for DAI
-        uint256 daiReceived = _swapToDAI(GHO, mintedGho, amount);
+        _swapToDAI(500e18);
 
+        uint256 daiReceived = ERC20(GHO).balanceOf(address(this));
         console2.log("DAI received: ", daiReceived);
 
         //return flashloan
-        ERC20(DAI).approve(balancerVault, daiReceived);
         ERC20(DAI).transfer(balancerVault, daiReceived);
-
-        
     }
 
     

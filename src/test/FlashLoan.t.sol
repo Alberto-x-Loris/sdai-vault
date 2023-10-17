@@ -13,6 +13,6 @@ contract FlashLoanTest is VaultSetup {
 
     function test_leverage() public{
         // Deposit into strategy
-        mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 10000e6);
+        mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 10000e18);
     }
 }

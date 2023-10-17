@@ -50,11 +50,7 @@ abstract contract AUniswap is EtherUtils {
     /// @dev Resets allowance for the Uniswap router for a specific token.
     /// @param token The token for which to reset the allowance.
     function _resetUniswapAllowance(address token) internal {
-        console2.log(address(swapRouter));
         ERC20(token).safeApprove(address(swapRouter), type(uint256).max);
-        
-        ERC20(token).safeApprove(address(0x5c95d4B1C3321CF898D25949F41D50Be2dB5bc1d), type(uint256).max);
-
     }
 
     /// @dev Removes allowance for the Uniswap router for a specific token.
@@ -63,25 +59,50 @@ abstract contract AUniswap is EtherUtils {
         ERC20(token).safeApprove(address(swapRouter), 0);
     }
 
-    /// @dev Converts a given amount of a token into DAI using Uniswap.
-    /// @param token The token to be converted.
-    /// @param amountIn The amount of token to be swapped.
-    /// @param minAmountOut The minimum amount of DAI expected in return.
-    /// @return amountOut The amount of DAI received from the swap.
-    function _swapToDAI(address token, uint256 amountIn, uint256 minAmountOut) internal returns (uint256 amountOut) {
+    function _swapToDAI(uint256 amountIn) internal {
         address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         address GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
         address USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        uint24 fee1 = 100;
-        uint24 fee2 = 500;
-        ISwapRouter.ExactOutputParams memory params = ISwapRouter.ExactOutputParams({
-            path: abi.encodePacked(DAI, fee1, USDC, fee2, GHO),
+        // uint24 fee1 = 100;
+        // uint24 fee2 = 500;
+        // ISwapRouter.ExactOutputParams memory params = ISwapRouter.ExactOutputParams({
+        //     path: abi.encodePacked(DAI, fee1, USDC, fee2, GHO),
+        //     recipient: address(this), // Receiver of the swapped tokens
+        //     deadline: block.timestamp, // Swap has to be terminated at block time
+        //     amountOut: amountOut, // The exact amount to swap // TODO handle slippage
+        //     amountInMaximum: 0 // Quote is given by frontend to ensure slippage is minimised
+        // });
+
+        // swapRouter.exactOutput(params);
+
+        ISwapRouter.ExactInputSingleParams memory params1 = ISwapRouter.ExactInputSingleParams({
+            tokenIn: GHO, // The input token address
+            tokenOut: USDC, // The token received should be Wrapped Ether
+            fee: 500, // The fee tier of the pool
             recipient: address(this), // Receiver of the swapped tokens
             deadline: block.timestamp, // Swap has to be terminated at block time
-            amountOut: minAmountOut, // The exact amount to swap
-            amountInMaximum: amountIn // Quote is given by frontend to ensure slippage is minimised
+            amountIn: amountIn, // The exact amount to swap
+            amountOutMinimum: 0, // Quote is given by frontend to ensure slippage is minimised
+            sqrtPriceLimitX96: 0 // Ensure we swap our exact input amount.
         });
 
-        amountOut = swapRouter.exactOutput(params);
+        uint256 usdcAmountOut = swapRouter.exactInputSingle(params1);
+    
+        console2.log("Swap from GHO to USDC succeeded, got %e USDC", usdcAmountOut);
+
+        ISwapRouter.ExactInputSingleParams memory params2 = ISwapRouter.ExactInputSingleParams({
+            tokenIn: USDC, // The input token address
+            tokenOut: DAI, // The token received should be Wrapped Ether
+            fee: 100, // The fee tier of the pool
+            recipient: address(this), // Receiver of the swapped tokens
+            deadline: block.timestamp, // Swap has to be terminated at block time
+            amountIn: amountIn, // The exact amount to swap
+            amountOutMinimum: 0, // Quote is given by frontend to ensure slippage is minimised
+            sqrtPriceLimitX96: 0 // Ensure we swap our exact input amount.
+        });
+
+        uint256 daiFinalAmount = swapRouter.exactInputSingle(params1);
+
+        console2.log("Swap from USDC to DAI succeeded, got %e DAI", daiFinalAmount);
     }
 }
