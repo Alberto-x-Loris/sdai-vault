@@ -37,6 +37,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     address public sDAI;
     address public DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address public GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
+    address public USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
     address public podManager;
     address public pod;
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
@@ -120,7 +121,11 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
         //SafeTransferLib.safeTransferFrom(ERC20(address(GHO)), address(this), address(AUniswap.swapRouter), mintedGho);
         //ERC20(GHO).safeIncreaseAllowance(address(swapRouter), mintedGho);
-        ERC20(GHO).approve(address(swapRouter), mintedGho);
+        //ERC20(GHO).approve(address(swapRouter), mintedGho);
+        _resetUniswapAllowance(GHO);
+        _resetUniswapAllowance(DAI);
+        _resetUniswapAllowance(USDC);
+        
 
         console2.log("GHO approved for swap for ", address(AUniswap.swapRouter));
 

