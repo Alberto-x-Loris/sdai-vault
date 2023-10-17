@@ -41,6 +41,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     address public podManager;
     address public pod;
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
+    uint8 public leverageFactor = 4;
     
 
     enum FlashLoanOperation {LEVERAGE, DELEVERAGE}
@@ -65,11 +66,14 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         if(operation == FlashLoanOperation.LEVERAGE){
             console2.log("LEVERAGE");
             _leverageAfterFlashLoan(amounts[0]);
+        }else if(operation == FlashLoanOperation.DELEVERAGE){
+            console2.log("DELEVERAGE");
+            _deleverageAfterFlashLoan(amounts[0]);
         }
     }
 
     function  _leverage(uint256 _amount, uint8 leverageFactor, uint8 maxLTV) internal {
-        if(leverageFactor >= 10) revert("Leverage factor must be less than 10");
+        if(leverageFactor >= 8) revert("Leverage factor must be less than 8");
         //Will deposit leveragedsDaiAmount of DAI in pod as collateral
         console2.log("DAI Balance: %e", _amount);
 
@@ -130,7 +134,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         console2.log("GHO approved for swap for ", address(AUniswap.swapRouter));
 
         //swap GHO for DAI
-        uint256 daiReceived = _swapToDAI(GHO, mintedGho, amount);
+        uint256 daiReceived = _swapToDAI(mintedGho, amount);
 
         console2.log("DAI received: ", daiReceived);
 
@@ -138,9 +142,67 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
         //return flashloan
         ERC20(DAI).transfer(balancerVault, amount);
-
         
     }
+
+    function  _deleverage(uint256 _amount, uint8 maxLTV) internal {
+        //Will need to withdraw sDaiAmount of DAI in pod as collateral
+        console2.log("Need to withdraw %e DAI: ", _amount);
+
+        
+        uint256 withdrawDaiAmount = _amount * (100**(leverageFactor)- uint256(maxLTV)**(leverageFactor))/(100**(leverageFactor-1)* (100-maxLTV));
+        console2.log("need to withdraw %e leveraged DAI Balance: %e", withdrawDaiAmount);
+
+        uint256 toSwapAmount = withdrawDaiAmount - _amount;
+
+        address[] memory daiSingleton = new address[](1);
+        daiSingleton[0] = DAI;
+        uint256[] memory DAIamountSingleton = new uint256[](1);
+        DAIamountSingleton[0] = toSwapAmount;
+
+        bytes memory leverageData = abi.encode(FlashLoanOperation.DELEVERAGE);
+
+        IVault(balancerVault).flashLoan(address(this), daiSingleton, DAIamountSingleton, leverageData);
+
+    }
+
+    function _deleverageAfterFlashLoan(uint256 amount) internal {
+    
+        console2.log("starting deleverage with amount: %e", amount);
+        // gho depeg factor to multiply by amount to reimburse flashloan (= 1 / ghoPrice)
+        uint256 ghoDepegFactor = 102;
+        //get DAI balance from flashloan
+        uint256 DAIBalance = ERC20(DAI).balanceOf(address(this));
+        console2.log("DAI Balance: %e", DAIBalance);
+
+        _resetUniswapAllowance(GHO);
+        _resetUniswapAllowance(DAI);
+        _resetUniswapAllowance(USDC);
+        
+
+        console2.log("DAI approved for swap for ", address(AUniswap.swapRouter));
+
+        //swap DAI for GHO
+        uint256 ghoReceived = _swapToGHO( amount, (amount*ghoDepegFactor)/100);
+
+        uint256 sDaiToWithdraw = SavingsDai(sDAI).previewDeposit(amount);
+
+        bool IsRefundSucess = IPod(pod).repayGhoAndWithdrawCollateral(ghoReceived, sDaiToWithdraw, address(this));
+
+        console2.log("IsRefundSucess: ", IsRefundSucess);
+
+        uint256 sDAIBalance = ERC20(sDAI).balanceOf(address(this));
+        console2.log("sDAI Balance: %e", sDAIBalance);
+
+        uint256 daiReedemed = SavingsDai(sDAI).redeem(amount, address(this), address(this));
+        console2.log("daiReedemed: %e", daiReedemed);
+
+        ERC20(DAI).transfer(balancerVault, amount);
+
+
+       
+    }
+
 
     
     /**
