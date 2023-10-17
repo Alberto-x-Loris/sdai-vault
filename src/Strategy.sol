@@ -71,15 +71,15 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     function  _leverage(uint256 _amount, uint8 leverageFactor, uint8 maxLTV) internal {
         if(leverageFactor >= 10) revert("Leverage factor must be less than 10");
         //Will deposit leveragedsDaiAmount of DAI in pod as collateral
-        console2.log("DAI Balance: ", _amount);
+        console2.log("DAI Balance: %e", _amount);
 
         
-        uint256 leveragedDaiAmount = _amount * (100**(leverageFactor+1)- uint256(maxLTV)**(leverageFactor+1))/((100**leverageFactor) * (100-maxLTV));
-        console2.log("leveraged DAI Balance: ", leveragedDaiAmount);
+        uint256 leveragedDaiAmount = _amount * (100**(leverageFactor)- uint256(maxLTV)**(leverageFactor))/(100**(leverageFactor-1)* (100-maxLTV));
+        console2.log("leveraged DAI Balance: %e", leveragedDaiAmount);
 
 
         //Will need to borrow leveragedGHOAmount from POD to reimburse flashloan
-        uint256 leveragedGHOAmount = _amount * (100**(leverageFactor+1)- uint256(maxLTV)**(leverageFactor+1))/((100**leverageFactor) * (100-maxLTV));
+        uint256 leveragedGHOAmount = _amount * (100**(leverageFactor)- uint256(maxLTV)**(leverageFactor))/(100**(leverageFactor-1)* (100-maxLTV));
 
         
         address[] memory daiSingleton = new address[](1);
@@ -93,17 +93,17 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
     }
 
     function _leverageAfterFlashLoan(uint256 amount) internal {
-        console2.log("starting leverage with amount: ", amount);
+        console2.log("starting leverage with amount: %e", amount);
         // gho depeg factor to multiply by amount to reimburse flashloan (= 1 / ghoPrice)
         uint256 ghoDepegFactor = 104;
         //get DAI balance from flashloan
         uint256 DAIBalance = ERC20(DAI).balanceOf(address(this));
-        console2.log("DAI Balance: ", DAIBalance);
+        console2.log("DAI Balance: %e", DAIBalance);
 
         ERC20(DAI).approve(sDAI, DAIBalance);
 
         uint256 sDAIBalance = SavingsDai(sDAI).deposit(DAIBalance, address(this));
-        console2.log("sDAI Balance: ", sDAIBalance);
+        console2.log("sDAI Balance: %e", sDAIBalance);
 
         ERC20(sDAI).approve(pod, sDAIBalance);
         console2.log("sDAI approved for pod");
@@ -134,9 +134,10 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
         console2.log("DAI received: ", daiReceived);
 
+        ERC20(DAI).balanceOf(address(this));
+
         //return flashloan
-        ERC20(DAI).approve(balancerVault, daiReceived);
-        ERC20(DAI).transfer(balancerVault, daiReceived);
+        ERC20(DAI).transfer(balancerVault, amount);
 
         
     }
@@ -154,7 +155,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
      * to deposit in the yield source.
      */
     function _deployFunds(uint256 _amount) internal override {
-        _leverage(_amount, 9, 77);
+        _leverage(_amount, 4, 77);
         
 
     }
