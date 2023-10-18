@@ -139,7 +139,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         //swap GHO for DAI
         uint256 daiReceived = _swapToDAI(mintedGho, amount);
 
-        console2.log("DAI received: ", daiReceived);
+        console2.log("DAI received: %e", daiReceived);
 
         ERC20(DAI).balanceOf(address(this));
 
@@ -197,7 +197,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         uint256 sDAIBalance = ERC20(sDAI).balanceOf(address(this));
         console2.log("sDAI Balance: %e", sDAIBalance);
 
-        uint256 daiReedemed = SavingsDai(sDAI).redeem(amount, address(this), address(this));
+        uint256 daiReedemed = SavingsDai(sDAI).redeem(sDAIBalance, address(this), address(this));
         console2.log("daiReedemed: %e", daiReedemed);
 
         ERC20(DAI).transfer(balancerVault, amount);
@@ -221,7 +221,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
      */
     function _deployFunds(uint256 _amount) internal override {
         _leverage(_amount, 4, 77);
-        
+    
 
     }
 
@@ -255,6 +255,7 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         // TODO: implement withdraw logic EX:
         //
         //      lendingPool.withdraw(asset, _amount);
+        _deleverage(_amount, 77);
     }
 
     /**
@@ -376,16 +377,16 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
      *
      * @param . The address that is withdrawing from the strategy.
      * @return . The avialable amount that can be withdrawn in terms of `asset`
-     *
-     * function availableWithdrawLimit(
-     *     address _owner
-     * ) public view override returns (uint256) {
-     *     TODO: If desired Implement withdraw limit logic and any needed state variables.
-     *     
-     *     EX:    
-     *         return TokenizedStrategy.totalIdle();
-     * }
      */
+     
+     function availableWithdrawLimit(
+         address _owner
+      ) public view override returns (uint256) {
+         //uint256 maxWithdraw = TokenizedStrategy.totalIdle();
+        uint256 maxWithdraw = type(uint256).max;
+              return maxWithdraw;
+     }
+     
 
     /**
      * @dev Optional function for a strategist to override that will
