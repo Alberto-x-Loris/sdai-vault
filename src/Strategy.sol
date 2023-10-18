@@ -173,7 +173,17 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
         //swap DAI for GHO
         uint256 ghoReceived = _swapToGHO(amount, (amount * ghoDepegFactor) / 100);
 
-        uint256 sDaiToWithdraw = SavingsDai(sDAI).previewDeposit(amount);
+        console2.log("GHO received: %e", ghoReceived);
+
+        //Threshold to avoid rounding errors, need to adjust to needs
+        uint256 safeThreshold = 1e17;
+
+        uint256 sDaiToWithdraw = SavingsDai(sDAI).previewDeposit(amount + safeThreshold);
+
+        console2.log("sDaiToWithdraw: %e", sDaiToWithdraw);
+
+        ERC20(GHO).safeApprove(pod, ghoReceived);
+        console2.log("GHO approved for pod");
 
         bool IsRefundSucess = IPod(pod).repayGhoAndWithdrawCollateral(ghoReceived, sDaiToWithdraw, address(this));
 
