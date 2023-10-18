@@ -9,6 +9,7 @@ import {DullahanPodManager} from "src/interfaces/IPodManager.sol";
 contract InitTest is Setup {
     address public asDAI = 0x4C612E3B15b96Ff9A6faED838F8d07d479a8dD4c;
     address public podManager = 0xf3dEcC68c4FF828456696287B12e5AC0fa62fE56;
+
     function setUp() public override {
         super.setUp();
         vm.startPrank(DullahanPodManager(podManager).owner());

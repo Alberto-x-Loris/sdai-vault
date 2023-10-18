@@ -8,10 +8,9 @@ import {DullahanPodManager} from "src/interfaces/IPodManager.sol";
 import "./utils/VaultSetup.sol";
 
 contract FlashLoanTest is VaultSetup {
-
     address alice = makeAddr("alice");
 
-    function test_leverage() public{
+    function test_leverage() public {
         // Deposit into strategy
         mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 100e18);
     }
