@@ -8,11 +8,10 @@ import {DullahanPodManager} from "src/interfaces/IPodManager.sol";
 import "./utils/VaultSetup.sol";
 import {console2} from "forge-std/console2.sol";
 
-
 contract FlashLoanTest is VaultSetup {
     address alice = makeAddr("alice");
 
-    function setUp() override public {
+    function setUp() public override {
         super.setUp();
 
         // Deposit into strategy
@@ -20,13 +19,12 @@ contract FlashLoanTest is VaultSetup {
         mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, amount);
     }
 
-    function test_deleverage() public{
+    function test_deleverage() public {
         uint256 amount = strategy.balanceOf(alice);
 
         vm.startPrank(alice);
         uint256 received = IStrategyInterface(address(strategy)).redeem(amount, address(this), alice);
         vm.stopPrank();
-
 
         uint256 DAIBalanceReedemed = ERC20(DAI).balanceOf(address(this));
 

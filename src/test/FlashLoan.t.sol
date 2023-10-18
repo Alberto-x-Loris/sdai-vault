@@ -8,7 +8,6 @@ import {DullahanPodManager} from "src/interfaces/IPodManager.sol";
 import "./utils/VaultSetup.sol";
 import {console2} from "forge-std/console2.sol";
 
-
 contract FlashLoanTest is VaultSetup {
     address alice = makeAddr("alice");
 
