@@ -22,6 +22,8 @@ contract FlashLoanTest is VaultSetup {
     function test_deleverage() public {
         uint256 amount = strategy.balanceOf(alice);
 
+        console2.log("alice amount %e", amount);
+
         vm.startPrank(alice);
         uint256 received = IStrategyInterface(address(strategy)).redeem(amount, address(this), alice);
         vm.stopPrank();

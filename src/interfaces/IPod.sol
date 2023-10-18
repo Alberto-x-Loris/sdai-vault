@@ -7,4 +7,8 @@ interface IPod {
     function repayGhoAndWithdrawCollateral(uint256 repayAmount, uint256 withdrawAmount, address receiver)
         external
         returns (bool);
+
+    function withdrawCollateral(uint256 amount, address receiver) external;
+    function podCollateralBalance() external view returns (uint256);
+    function podDebtBalance() external view returns (uint256);
 }
