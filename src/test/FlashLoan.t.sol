@@ -16,24 +16,4 @@ contract FlashLoanTest is VaultSetup {
         // Deposit into strategy
         mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 100e18);
     }
-
-    function test_deleverage() public{
-        // Deposit into strategy
-        uint256 amount = 100e18;
-        uint256 DAIBalanceBefore = ERC20(DAI).balanceOf(address(this));
-        console2.log("DAIBalanceBefore %e", DAIBalanceBefore);
-
-        mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, amount);
-        uint256 DAIBalanceAfterMint = ERC20(DAI).balanceOf(address(this));
-        console2.log("DAIBalanceAfterMint %e", DAIBalanceAfterMint);
-        //_freeFunds(amount);
-        //IStrategyInterface(address(strategy)).redeem(10, address(this), address(this));
-        //IStrategyInterface(address(strategy)).freeFunds(amount);
-        uint256 received = IStrategyInterface(address(strategy)).redeem(amount, address(this), address(this));
-
-
-        uint256 DAIBalanceReedemed = ERC20(DAI).balanceOf(address(this));
-
-        console2.log("redeemed %e", DAIBalanceReedemed);
-    }
 }
