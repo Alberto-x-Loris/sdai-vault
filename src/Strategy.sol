@@ -336,34 +336,6 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
      */
 
     /**
-     * @notice Gets the max amount of `asset` that can be withdrawn.
-     * @dev Defaults to an unlimited amount for any address. But can
-     * be overriden by strategists.
-     *
-     * This function will be called before any withdraw or redeem to enforce
-     * any limits desired by the strategist. This can be used for illiquid
-     * or sandwhichable strategies. It should never be lower than `totalIdle`.
-     *
-     *   EX:
-     *       return TokenIzedStrategy.totalIdle();
-     *
-     * This does not need to take into account the `_owner`'s share balance
-     * or conversion rates from shares to assets.
-     *
-     * @param . The address that is withdrawing from the strategy.
-     * @return . The avialable amount that can be withdrawn in terms of `asset`
-     */
-     
-     function availableWithdrawLimit(
-         address _owner
-      ) public view override returns (uint256) {
-         //uint256 maxWithdraw = TokenizedStrategy.totalIdle();
-        uint256 maxWithdraw = type(uint256).max;
-              return maxWithdraw;
-     }
-     
-
-    /**
      * @dev Optional function for a strategist to override that will
      * allow management to manually withdraw deployed funds from the
      * yield source if a strategy is shutdown.
