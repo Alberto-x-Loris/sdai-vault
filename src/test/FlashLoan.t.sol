@@ -16,7 +16,6 @@ contract FlashLoanTest is VaultSetup {
         // Deposit into strategy
         mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 100e18);
     }
-<<<<<<< HEAD
 
     function test_deleverage() public{
         // Deposit into strategy
@@ -38,6 +37,3 @@ contract FlashLoanTest is VaultSetup {
         console2.log("redeemed %e", DAIBalanceReedemed);
     }
 }
-=======
-}
->>>>>>> c41319f (style: formatting)
