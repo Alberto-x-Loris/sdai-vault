@@ -9,7 +9,6 @@ import {EtherUtils} from "./EtherUtils.sol";
 import {console2} from "forge-std/console2.sol";
 import {IQuoterV2} from "./uniswap/IQuoterV2.sol";
 
-
 /// @title AUniswap
 /// @author centonze.eth
 /// @notice Utility functions related to Uniswap operations.
@@ -20,7 +19,7 @@ abstract contract AUniswap is EtherUtils {
     mapping(address => uint24) public uniswapFees;
     // Address of Uniswap V3 router
     ISwapRouter public swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    IQuoterV2 public quoteRouter = IQuoterV2(0x61fFE014bA17989E743c5F6cB21bF9697530B21e); 
+    IQuoterV2 public quoteRouter = IQuoterV2(0x61fFE014bA17989E743c5F6cB21bF9697530B21e);
 
     address DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
     address GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
@@ -72,7 +71,6 @@ abstract contract AUniswap is EtherUtils {
     /// @param minAmountOut The minimum amount of DAI expected in return.
     /// @return amountOut The amount of DAI received from the swap.
     function _swapToDAI(uint256 amountIn, uint256 minAmountOut) internal returns (uint256 amountOut) {
-        
         ISwapRouter.ExactOutputParams memory params = ISwapRouter.ExactOutputParams({
             path: abi.encodePacked(DAI, fee1, USDC, fee2, GHO),
             recipient: address(this), // Receiver of the swapped tokens
@@ -84,8 +82,9 @@ abstract contract AUniswap is EtherUtils {
         amountOut = swapRouter.exactOutput(params);
     }
 
-    function _quoteSwapToDai(uint256 quoteAmountOut) internal returns(uint256 amountOut, uint256 gasEstimate){
-        (amountOut, , , gasEstimate) = quoteRouter.quoteExactOutput(bytes(abi.encodePacked(DAI, fee1, USDC, fee2, GHO)), quoteAmountOut);
+    function _quoteSwapToDai(uint256 quoteAmountOut) internal returns (uint256 amountOut, uint256 gasEstimate) {
+        (amountOut,,, gasEstimate) =
+            quoteRouter.quoteExactOutput(bytes(abi.encodePacked(DAI, fee1, USDC, fee2, GHO)), quoteAmountOut);
     }
 
     /// @dev Converts a given amount of DAI into GHO using Uniswap.
@@ -93,7 +92,6 @@ abstract contract AUniswap is EtherUtils {
     /// @param minAmountOut The minimum amount of GHO expected in return.
     /// @return amountOut The amount of GHO received from the swap.
     function _swapToGHO(uint256 amountIn, uint256 minAmountOut) internal returns (uint256 amountOut) {
-    
         ISwapRouter.ExactOutputParams memory params = ISwapRouter.ExactOutputParams({
             path: abi.encodePacked(GHO, fee2, USDC, fee1, DAI),
             recipient: address(this), // Receiver of the swapped tokens

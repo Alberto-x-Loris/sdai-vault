@@ -10,13 +10,13 @@ import {console2} from "forge-std/console2.sol";
 
 
 contract FlashLoanTest is VaultSetup {
-
     address alice = makeAddr("alice");
 
-    function test_leverage() public{
+    function test_leverage() public {
         // Deposit into strategy
         mintAndDepositIntoStrategy(IStrategyInterface(address(strategy)), alice, 100e18);
     }
+<<<<<<< HEAD
 
     function test_deleverage() public{
         // Deposit into strategy
@@ -38,3 +38,6 @@ contract FlashLoanTest is VaultSetup {
         console2.log("redeemed %e", DAIBalanceReedemed);
     }
 }
+=======
+}
+>>>>>>> c41319f (style: formatting)
