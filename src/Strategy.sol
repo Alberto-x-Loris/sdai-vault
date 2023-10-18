@@ -269,12 +269,9 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
      * @return _totalAssets A trusted and accurate account for the total
      * amount of 'asset' the strategy currently holds including idle funds.
      */
-    function _harvestAndReport() internal override returns (uint256 _totalAssets) {
-        // TODO: Implement harvesting logic and accurate accounting EX:
-        //
-        //      _claminAndSellRewards();
-        //      _totalAssets = aToken.balanceof(address(this)) + ERC20(asset).balanceOf(address(this));
-        _totalAssets = ERC20(asset).balanceOf(address(this));
+    function _harvestAndReport() internal view override returns (uint256 _totalAssets) {
+        uint256 shares = _totalAssets = SavingsDai(sDAI).balanceOf(address(this));
+        _totalAssets = SavingsDai(sDAI).convertToAssets(shares);
     }
 
     /*//////////////////////////////////////////////////////////////
