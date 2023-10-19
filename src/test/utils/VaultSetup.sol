@@ -11,7 +11,7 @@ abstract contract VaultSetup is Setup {
     address public pod;
     address public balancerVault = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         super.setUp();
 
         vm.startPrank(DullahanPodManager(podManager).owner());

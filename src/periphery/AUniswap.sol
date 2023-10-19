@@ -92,14 +92,14 @@ abstract contract AUniswap is EtherUtils {
     /// @param minAmountOut The minimum amount of GHO expected in return.
     /// @return amountOut The amount of GHO received from the swap.
     function _swapToGHO(uint256 amountIn, uint256 minAmountOut) internal returns (uint256 amountOut) {
-        ISwapRouter.ExactOutputParams memory params = ISwapRouter.ExactOutputParams({
-            path: abi.encodePacked(GHO, fee2, USDC, fee1, DAI),
+        ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
+            path: abi.encodePacked(DAI, fee1, USDC, fee2, GHO),
             recipient: address(this), // Receiver of the swapped tokens
             deadline: block.timestamp, // Swap has to be terminated at block time
-            amountOut: minAmountOut, // The exact amount to swap
-            amountInMaximum: amountIn // Quote is given by frontend to ensure slippage is minimised
+            amountIn: amountIn, // The exact amount to swap
+            amountOutMinimum: minAmountOut // Quote is given by frontend to ensure slippage is minimised
         });
 
-        amountOut = swapRouter.exactOutput(params);
+        amountOut = swapRouter.exactInput(params);
     }
 }
