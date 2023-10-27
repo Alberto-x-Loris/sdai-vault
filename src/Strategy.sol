@@ -163,8 +163,8 @@ contract Strategy is BaseTokenizedStrategy, IFlashLoanRecipient, AUniswap {
 
         IVault(balancerVault).flashLoan(address(this), daiSingleton, DAIamountSingleton, leverageData);
 
+        //return from flashloan (after call to _deleverageAfterFlashloan)
         uint256 safeWithdrawThreshold = 150e16;
-        
         uint256 sDaiToWithdraw = SavingsDai(sDAI).previewDeposit(_amount - safeWithdrawThreshold);
 
         uint256 collateral = IPod(pod).podCollateralBalance();

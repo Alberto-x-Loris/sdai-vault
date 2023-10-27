@@ -22,12 +22,14 @@ interface SavingsDai {
     function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
     function deploymentChainId() external view returns (uint256);
     function deposit(uint256 assets, address receiver) external returns (uint256 shares);
+    function deposit(uint256 assets, address receiver, uint16 referral) external returns (uint256 shares);
     function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
     function maxDeposit(address) external pure returns (uint256);
     function maxMint(address) external pure returns (uint256);
     function maxRedeem(address owner) external view returns (uint256);
     function maxWithdraw(address owner) external view returns (uint256);
     function mint(uint256 shares, address receiver) external returns (uint256 assets);
+    function mint(uint256 shares, address receiver, uint16 referral) external returns (uint256 assets);
     function name() external view returns (string memory);
     function nonces(address) external view returns (uint256);
     function permit(address owner, address spender, uint256 value, uint256 deadline, bytes memory signature) external;
